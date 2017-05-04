@@ -1,7 +1,6 @@
 import serial
 import time
 
-
 class RelayBoard:
     def __init__(self, config):
         self.relayBoard = serial.Serial(port=config.get('Socket', 'TTY_PORT'),
@@ -26,6 +25,4 @@ class RelayBoard:
         self.write(3, 0, 0)
 
     def writeDec(self, inputDec):
-        command = 3
-        address = 0
-        self.write(command, address, inputDec=inputDec)
+        self.write(3, 0, inputDec=inputDec)
