@@ -7,6 +7,7 @@ class RelayBoard:
                                         baudrate=config.get('Socket', 'BAUDRATE'),
                                         parity=serial.PARITY_NONE,
                                         stopbits=serial.STOPBITS_ONE)
+        self.beat = config.getfloat('Relay', 'BEAT')
 
     def soundify(self, inputStr):
         self.relayBoard.__enter__()
@@ -14,12 +15,14 @@ class RelayBoard:
             self.clear()
             self.writeDec(ord(c))
             print(c)
+        time.sleep(self.beat)
         self.relayBoard.__exit__()
 
     def write(self, command, address, inputDec):
-        time.sleep(0.2)
+        time.sleep(self.beat)
         checksum = command ^ address ^ inputDec
         self.relayBoard.write(bytearray([command, address, inputDec, checksum]))
+        self.relayBoard.flush()
 
     def clear(self):
         self.write(3, 0, 0)

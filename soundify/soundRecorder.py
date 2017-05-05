@@ -15,10 +15,10 @@ class SoundRecorder(threading.Thread):
 
     def record(self, path):
         audio = pyaudio.PyAudio()
-        format = self.config.get('Sound', 'FORMAT')
-        channels = self.config.get('Sound', 'CHANNELS'),
-        rate = self.config.get('Sound', 'RATE'),
-        chunk = self.config.get('Sound', 'CHUNK')
+        format = pyaudio.paInt16
+        channels = self.config.getint('Sound', 'CHANNELS')
+        rate = self.config.getint('Sound', 'RATE')
+        chunk = self.config.getint('Sound', 'CHUNK')
 
         # start Recording
         stream = audio.open(format=format,
