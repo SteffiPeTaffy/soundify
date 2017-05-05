@@ -61,16 +61,16 @@ class SoundTransformer:
         return sum(result)
 
     def getChar(self, inputVector, dict):
-        distances = {}
-
+        minDist=999999999999999
+        bestFitChar = ''
         for dictEntry in dict:
             char = dictEntry[0]
             charVector = map(float, dictEntry[1][1:-1].split(','))
             distance = self.getDistance(inputVector, charVector)
-            distances[char] = distance
-            print('distance for char: ' + char + ' ' + str(distance))
-
-        return min(distances, key=distances.get)
+            if distance < minDist:
+                minDist = distance
+                bestFitChar = char
+        return bestFitChar
 
     def textify(self, inputSignals):
         csv.field_size_limit(500 * 1024 * 1024)
