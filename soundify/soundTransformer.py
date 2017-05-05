@@ -1,7 +1,9 @@
 import csv
-import string
 import wave
 import struct
+
+from math import fabs
+
 
 class SoundTransformer:
     def __init__(self, config, soundFilePath):
@@ -31,24 +33,53 @@ class SoundTransformer:
         signals = self.wavToFloatArray()
         signalLength = len(signals)
         charCount = 1
-        startIndex = int(self.getStartIndexOfChar(charCount))
         lengthOfOneChar = int(self.getLengthOfChar())
-        endIndex = int(startIndex + lengthOfOneChar) if int(
-            startIndex + lengthOfOneChar) < signalLength else signalLength - 1
+        startIndex = int(self.getStartIndexOfChar(charCount))
+        endIndex = int(startIndex + lengthOfOneChar)
         dict = []
-        while startIndex < signalLength:
-            dict.append(signals[startIndex:endIndex])
+        while endIndex < signalLength:
+            charVector = signals[startIndex:endIndex]
+            dict.append(charVector)
             charCount += 1
             startIndex = int(self.getStartIndexOfChar(charCount))
-            endIndex = int(startIndex + lengthOfOneChar) if int(startIndex + lengthOfOneChar) >= signalLength else signalLength - 1
+            endIndex = int(startIndex + lengthOfOneChar)
         return dict[::2]
 
-    def writeDictToFile(self, inputString):
-        allSciiSignals = self.getCharArrays()
-        with open('soundifyDict.csv', 'wb') as f:
-            w = csv.writer(f)
-            w.writerow(list(inputString))
-            w.writerow(allSciiSignals)
+    def writeDictToFile(self, inputAsArray):
+        inputSignals = self.getCharArrays()
+        inputAsArray = list(inputAsArray)
+        with open(self.config.get('Misc', 'DICT_FILE_NAME'), 'wb') as f:
+            writer = csv.writer(f)
+            for index, vector in enumerate(inputSignals):
+                writer.writerow([inputAsArray[index], vector])
 
-    def __str__(self):
-        return "\n".join(self.wavToFloatArray())
+
+    def getDistance(self, inputVector, charVector):
+        result = []
+        for index, val in enumerate(inputVector):
+            result.append(fabs(inputVector[index] - charVector[index]))
+        return sum(result)
+
+    def getChar(self, inputVector, dict):
+        distances = {}
+
+        for dictEntry in dict:
+            char = dictEntry[0]
+            charVector = map(float, dictEntry[1][1:-1].split(','))
+            distance = self.getDistance(inputVector, charVector)
+            distances[char] = distance
+            print('distance for char: ' + char + ' ' + str(distance))
+
+        return min(distances, key=distances.get)
+
+    def textify(self, inputSignals):
+        csv.field_size_limit(500 * 1024 * 1024)
+        with open(self.config.get('Misc', 'DICT_FILE_NAME'), 'rb') as f:
+            reader = csv.reader(f)
+            dict = list(reader)
+
+        result = ""
+        for inSignal in inputSignals:
+            result += self.getChar(inSignal, dict)
+
+        return result

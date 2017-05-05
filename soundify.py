@@ -1,6 +1,5 @@
 import argparse
 import ConfigParser
-import string
 from soundify.relayBoard import RelayBoard
 from soundify.soundRecorder import SoundRecorder
 from soundify.soundTransformer import SoundTransformer
@@ -36,7 +35,7 @@ def main():
         #Record all ascii chars
         soundFilePath = "ascii.wav"
         #allAsciiChars = string.printable
-        allAsciiChars = "test init"
+        allAsciiChars = "abcdZ"
         record(allAsciiChars, soundFilePath=soundFilePath, config=config)
 
         # build dict
@@ -50,10 +49,14 @@ def main():
         record(inputString=inputString, soundFilePath=soundFilePath, config=config)
 
     if (inputArgs.command == "textify"):
-        print('Not yet implemented')
         soundFilePath = inputArgs.src
         soundTransformer = SoundTransformer(config=config, soundFilePath=soundFilePath)
-        print('Number of Characters detected: ' + str(len(soundTransformer.getCharArrays())))
+        inputSignals = soundTransformer.getCharArrays()
+        print('Number of Characters detected: ' + str(len(inputSignals)))
+
+        text = soundTransformer.textify(inputSignals)
+        print(text)
+
 
 if __name__ == "__main__":
     main()
