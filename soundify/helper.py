@@ -22,14 +22,15 @@ class Helper:
         return self.config.getint('Sound', 'RATE') * self.config.getfloat('Relay', 'BEAT')
 
     def getStartIndexOfChar(self, index):
-        delayAtStart = self.config.getfloat('Relay', 'BEAT') - 0.05
+        delayAtStart = self.config.getfloat('Relay', 'BEAT')
         beat = self.config.getfloat('Relay', 'BEAT')
         frameRate = self.config.getint('Sound', 'RATE')
+        log.debug('start index ' + str(index) + ': ' + str(delayAtStart + (beat * index)))
         return delayAtStart + (beat * index * frameRate)
 
     def getCharArrays(self, signals):
         signalLength = len(signals)
-        charCount = 1
+        charCount = 0
         lengthOfOneChar = int(self.getLengthOfChar())
         startIndex = int(self.getStartIndexOfChar(charCount))
         endIndex = int(startIndex + lengthOfOneChar)
@@ -40,7 +41,7 @@ class Helper:
             charCount += 1
             startIndex = int(self.getStartIndexOfChar(charCount))
             endIndex = int(startIndex + lengthOfOneChar)
-        return dict[::2]
+        return dict[1::2]
 
     def writeDictToFile(self, inputAsArray):
         inputSignals = self.getCharArrays()
