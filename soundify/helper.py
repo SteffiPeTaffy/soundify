@@ -61,11 +61,13 @@ class Helper:
         bestFitChar = ''
         for dictEntry in dict:
             char = dictEntry[0]
-            charVector = map(float, dictEntry[1][1:-1].split(','))
+            charVector = map(float, dictEntry[1:])
             distance = self.getDistance(inputVector, charVector)
+            log.debug('looking for best match: ' + str(char) + ' = ' + str(distance))
             if distance < minDist:
                 minDist = distance
                 bestFitChar = char
+        log.debug('best match: ' + str(bestFitChar) + ' = ' + str(minDist))
         return bestFitChar
 
     def textify(self, inputSignals):

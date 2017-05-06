@@ -36,7 +36,7 @@ def main():
     if (inputArgs.command == "textify"):
         soundFilePath = inputArgs.src
         text = transformer.textify(soundFilePath)
-        print('[%s]' % text)
+        print(text)
 
 if __name__ == "__main__":
     main()
