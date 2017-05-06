@@ -1,5 +1,7 @@
 import csv
 import logging as log
+import string
+
 from soundify.helper import Helper
 from soundify.soundRecorder import SoundRecorder
 from soundify.relayBoard import RelayBoard
@@ -14,7 +16,7 @@ class Transformer:
 
     def initDictonary(self):
         #allAsciiChars = string.printable
-        allAsciiChars = "abcdefg"
+        allAsciiChars = "abcde"
         self.soundify(allAsciiChars, self.dictSoundFilePath)
 
         wasAsFloatArray = self.helper.wavToFloatArray(self.dictSoundFilePath)
@@ -49,12 +51,14 @@ class Transformer:
 
     def soundify(self, inputString, soundFilePath):
         # start the recording thread
+        relayBoard = RelayBoard(self.config)
+        relayBoard.init()
+
         threadConfig = {'exitFlag': False}
         soundRecorder = SoundRecorder(soundFilePath, threadConfig, self.config)
         soundRecorder.start()
 
         # send input to relay board
-        relayBoard = RelayBoard(self.config)
         relayBoard.writeInputString(inputString)
 
         # stop the recording thread

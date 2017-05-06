@@ -4,11 +4,11 @@ import struct
 import logging as log
 from math import fabs
 
-
 class Helper:
     def __init__(self, config):
         self.config = config
         self.rate = config.getint('Sound', 'RATE')
+        self.beat = config.getfloat('Relay', 'BEAT')
 
     def wavToFloatArray(self, soundFilePath):
         wafFile = wave.open(soundFilePath)
@@ -18,11 +18,18 @@ class Helper:
         a = [float(val) / pow(2, 15) for val in a]
         return a
 
-    def getLengthOfChar(self):
+    def getLengthOfOneBeat(self):
         return self.config.getint('Sound', 'RATE') * self.config.getfloat('Relay', 'BEAT')
 
-    def getStartIndexOfChar(self, index):
-        delayAtStart = self.config.getfloat('Relay', 'BEAT')
+    def getInitialStartIndex(self, signals):
+        trimStart = int(0.05 * self.rate)
+        trimEnd = int(2 * self.beat * self.rate)
+        trimmedSignal = signals[trimStart:trimEnd]
+        for index, entry in enumerate(trimmedSignal):
+            if fabs(entry) > 0.1:
+                return index-200+trimStart
+
+    def getStartIndexOfChar(self, index, delayAtStart):
         beat = self.config.getfloat('Relay', 'BEAT')
         frameRate = self.config.getint('Sound', 'RATE')
         log.debug('start index ' + str(index) + ': ' + str(delayAtStart + (beat * index)))
@@ -31,25 +38,19 @@ class Helper:
     def getCharArrays(self, signals):
         signalLength = len(signals)
         charCount = 0
-        lengthOfOneChar = int(self.getLengthOfChar())
-        startIndex = int(self.getStartIndexOfChar(charCount))
-        endIndex = int(startIndex + lengthOfOneChar)
+        lengthOfOneBeat = int(self.getLengthOfOneBeat())
+        startIndex = int(self.getInitialStartIndex(signals))
+        delayAtStart = startIndex/float(self.rate)
+        log.debug('delay at start: ' + str(delayAtStart))
+        endIndex = int(startIndex + lengthOfOneBeat)
         dict = []
-        while endIndex < signalLength:
+        while endIndex <= signalLength:
             charVector = signals[startIndex:endIndex]
             dict.append(charVector)
             charCount += 1
-            startIndex = int(self.getStartIndexOfChar(charCount))
-            endIndex = int(startIndex + lengthOfOneChar)
+            startIndex = int(self.getStartIndexOfChar(charCount, delayAtStart))
+            endIndex = int(startIndex + lengthOfOneBeat)
         return dict[1::2]
-
-    def writeDictToFile(self, inputAsArray):
-        inputSignals = self.getCharArrays()
-        inputAsArray = list(inputAsArray)
-        with open(self.config.get('Dictonary', 'DICT_FILE_NAME'), 'wb') as f:
-            writer = csv.writer(f)
-            for index, vector in enumerate(inputSignals):
-                writer.writerow([inputAsArray[index], vector])
 
     def getDistance(self, inputVector, charVector):
         result = []
@@ -70,21 +71,3 @@ class Helper:
                 bestFitChar = char
         log.debug('best match: ' + str(bestFitChar) + ' = ' + str(minDist))
         return bestFitChar
-
-    def textify(self, inputSignals):
-        csv.field_size_limit(self.config.getint('Dictonary', 'FIELD_SIZE_LIMIT'))
-        with open(self.config.get('Dictonary', 'DICT_FILE_NAME'), 'rb') as f:
-            reader = csv.reader(f)
-            dict = list(reader)
-        result = ""
-        for inSignal in inputSignals:
-            result += self.getChar(inSignal, dict)
-        return result
-
-    def slidingWindow(self, sequence, winSize, step=1):
-        # Pre-compute number of chunks to emit
-        numOfChunks = ((len(sequence) - winSize) / step) + 1
-
-        # Do the work
-        for i in range(0, numOfChunks * step, step):
-            yield sequence[i:i + winSize]

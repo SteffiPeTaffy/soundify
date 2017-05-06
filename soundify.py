@@ -1,7 +1,9 @@
 import argparse
 import ConfigParser
 import logging as log
+from soundify.helper import Helper
 from soundify.transformer import Transformer
+from soundify.plotter import Plotter
 
 parser = argparse.ArgumentParser(description='Soundify')
 parser.add_argument('command', metavar='Command', type=str, help='[init|soundify|textify]')
@@ -37,6 +39,13 @@ def main():
         soundFilePath = inputArgs.src
         text = transformer.textify(soundFilePath)
         print(text)
+
+    if(inputArgs.command == "plot"):
+        soundFilePath = inputArgs.src
+        plotter = Plotter(config)
+        plotter.plotSound(soundFilePath)
+        plotter.plotCharsInSoundFile(soundFilePath)
+
 
 if __name__ == "__main__":
     main()

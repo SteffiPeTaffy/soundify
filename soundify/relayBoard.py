@@ -13,21 +13,26 @@ class RelayBoard:
     def writeInputString(self, inputStr):
         self.relayBoard.__enter__()
         for c in inputStr:
-            log.info('Writing char to relay board: ' + str(c))
             self.clear()
-            self.writeDec(ord(c))
+            self.writeChar(c)
         time.sleep(self.beat)
         self.relayBoard.__exit__()
 
     def write(self, command, address, inputDec):
         time.sleep(self.beat)
         checksum = command ^ address ^ inputDec
-        self.relayBoard.write(bytearray([command, address, inputDec, checksum]))
         log.debug('Writing to relay board: ' + str(command) + ' ' + str(address) + ' ' + str(inputDec) + ' ' + str(checksum))
+        self.relayBoard.write(bytearray([command, address, inputDec, checksum]))
         self.relayBoard.flush()
 
     def clear(self):
+        log.info('Clear relay board')
         self.write(3, 0, 0)
 
-    def writeDec(self, inputDec):
-        self.write(3, 0, inputDec=inputDec)
+    def init(self):
+        log.info('Init relay board')
+        self.write(3, 0, 255)
+
+    def writeChar(self, char):
+        log.info('Writing char to relay board: ' + str(char))
+        self.write(3, 0, ord(char))

@@ -3,6 +3,8 @@ import wave
 import threading
 import logging as log
 
+import time
+
 
 class SoundRecorder(threading.Thread):
     def __init__(self, path, threadConfig, config):
