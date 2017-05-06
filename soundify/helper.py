@@ -26,13 +26,13 @@ class Helper:
         trimEnd = int(2 * self.beat * self.rate)
         trimmedSignal = signals[trimStart:trimEnd]
         for index, entry in enumerate(trimmedSignal):
-            if fabs(entry) > 0.1:
+            if fabs(entry) > 0.15:
                 return index-200+trimStart
 
     def getStartIndexOfChar(self, index, delayAtStart):
         beat = self.config.getfloat('Relay', 'BEAT')
         frameRate = self.config.getint('Sound', 'RATE')
-        log.debug('start index ' + str(index) + ': ' + str(delayAtStart + (beat * index)))
+        log.debug('start index ' + str(index) + ': ' + str(delayAtStart + (beat * index)) + ' sec')
         return delayAtStart + (beat * index * frameRate)
 
     def getCharArrays(self, signals):
@@ -41,10 +41,11 @@ class Helper:
         lengthOfOneBeat = int(self.getLengthOfOneBeat())
         startIndex = int(self.getInitialStartIndex(signals))
         delayAtStart = startIndex/float(self.rate)
-        log.debug('delay at start: ' + str(delayAtStart))
+        log.debug('delay at start: ' + str(delayAtStart) + ' sec')
         endIndex = int(startIndex + lengthOfOneBeat)
         dict = []
         while endIndex <= signalLength:
+            log.debug('vector [' + str(startIndex) + ', ' + str(endIndex) + ']')
             charVector = signals[startIndex:endIndex]
             dict.append(charVector)
             charCount += 1
