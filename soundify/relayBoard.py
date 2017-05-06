@@ -1,5 +1,6 @@
 import serial
 import time
+import logging as log
 
 class RelayBoard:
     def __init__(self, config):
@@ -9,12 +10,12 @@ class RelayBoard:
                                         stopbits=serial.STOPBITS_ONE)
         self.beat = config.getfloat('Relay', 'BEAT')
 
-    def soundify(self, inputStr):
+    def writeInputString(self, inputStr):
         self.relayBoard.__enter__()
         for c in inputStr:
+            log.info('Writing char to relay board: ' + str(c))
             self.clear()
             self.writeDec(ord(c))
-            print(c)
         time.sleep(self.beat)
         self.relayBoard.__exit__()
 
@@ -22,6 +23,7 @@ class RelayBoard:
         time.sleep(self.beat)
         checksum = command ^ address ^ inputDec
         self.relayBoard.write(bytearray([command, address, inputDec, checksum]))
+        log.debug('Writing to relay board: ' + str(command) + ' ' + str(address) + ' ' + str(inputDec) + ' ' + str(checksum))
         self.relayBoard.flush()
 
     def clear(self):

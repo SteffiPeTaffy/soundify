@@ -1,19 +1,17 @@
 import csv
 import wave
 import struct
-
+import logging as log
 from math import fabs
 
 
-class SoundTransformer:
-    def __init__(self, config, soundFilePath):
+class Helper:
+    def __init__(self, config):
         self.config = config
-        self.soundFilePath = soundFilePath
         self.rate = config.getint('Sound', 'RATE')
 
-    # convert sound to vector
-    def wavToFloatArray(self):
-        wafFile = wave.open(self.soundFilePath)
+    def wavToFloatArray(self, soundFilePath):
+        wafFile = wave.open(soundFilePath)
         astr = wafFile.readframes(wafFile.getnframes())
         # convert binary chunks to short
         a = struct.unpack("%ih" % (wafFile.getnframes() * wafFile.getnchannels()), astr)
@@ -29,8 +27,7 @@ class SoundTransformer:
         frameRate = self.config.getint('Sound', 'RATE')
         return delayAtStart + (beat * index * frameRate)
 
-    def getCharArrays(self):
-        signals = self.wavToFloatArray()
+    def getCharArrays(self, signals):
         signalLength = len(signals)
         charCount = 1
         lengthOfOneChar = int(self.getLengthOfChar())
@@ -48,11 +45,10 @@ class SoundTransformer:
     def writeDictToFile(self, inputAsArray):
         inputSignals = self.getCharArrays()
         inputAsArray = list(inputAsArray)
-        with open(self.config.get('Misc', 'DICT_FILE_NAME'), 'wb') as f:
+        with open(self.config.get('Dictonary', 'DICT_FILE_NAME'), 'wb') as f:
             writer = csv.writer(f)
             for index, vector in enumerate(inputSignals):
                 writer.writerow([inputAsArray[index], vector])
-
 
     def getDistance(self, inputVector, charVector):
         result = []
@@ -73,13 +69,19 @@ class SoundTransformer:
         return bestFitChar
 
     def textify(self, inputSignals):
-        csv.field_size_limit(500 * 1024 * 1024)
-        with open(self.config.get('Misc', 'DICT_FILE_NAME'), 'rb') as f:
+        csv.field_size_limit(self.config.getint('Dictonary', 'FIELD_SIZE_LIMIT'))
+        with open(self.config.get('Dictonary', 'DICT_FILE_NAME'), 'rb') as f:
             reader = csv.reader(f)
             dict = list(reader)
-
         result = ""
         for inSignal in inputSignals:
             result += self.getChar(inSignal, dict)
-
         return result
+
+    def slidingWindow(self, sequence, winSize, step=1):
+        # Pre-compute number of chunks to emit
+        numOfChunks = ((len(sequence) - winSize) / step) + 1
+
+        # Do the work
+        for i in range(0, numOfChunks * step, step):
+            yield sequence[i:i + winSize]
