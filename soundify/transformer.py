@@ -1,10 +1,15 @@
 import csv
-import logging as log
 import string
-
+import struct
+import time
+import logging as log
+import wave
+from math import fabs
 from soundify.helper import Helper
 from soundify.soundRecorder import SoundRecorder
 from soundify.relayBoard import RelayBoard
+from soundify.dictonary import Dictonary
+from soundify.textifier import Textifier
 
 
 class Transformer:
@@ -16,25 +21,23 @@ class Transformer:
 
     def initDictonary(self):
         #allAsciiChars = string.printable
-        allAsciiChars = "abcde"
+        allAsciiChars = "abcdef"
         self.soundify(allAsciiChars, self.dictSoundFilePath)
 
-        wasAsFloatArray = self.helper.wavToFloatArray(self.dictSoundFilePath)
-        inputSignals = self.helper.getCharArrays(wasAsFloatArray)
-        inputAsArray = list(allAsciiChars)
-        with open(self.dictFilePath, 'wb') as f:
-            writer = csv.writer(f)
-            log.info('writing dict to csv ' + str(self.dictFilePath))
-            for index, vector in enumerate(inputSignals):
-                char = inputAsArray[index]
-                row = [char] + vector
-                log.debug('writing row for char ' + str(char) + ' with length ' + str(len(vector)) + ' to dict')
-                writer.writerow(row)
+        soundAsFloatArray = self.soundToFloatArray(self.dictSoundFilePath)
+        soundAsCharArrays = self.getCharsAsFloatArrays(soundAsFloatArray)
+
+        dictonary = Dictonary(self.config)
+        dictonary.writeDict(soundAsCharArrays, allAsciiChars)
+
 
     def textify(self, soundFilePath):
+        textifier = Textifier(self.config)
+
+
         # sound to float array
-        wasAsFloatArray = self.helper.wavToFloatArray(soundFilePath)
-        inputSignals = self.helper.getCharArrays(wasAsFloatArray)
+        soundAsFloatArray = self.soundToFloatArray(soundFilePath)
+        soundAsCharArrays = self.getCharsAsFloatArrays(soundAsFloatArray)
 
         # load dict
         with open(self.dictFilePath, 'rb') as f:
@@ -43,16 +46,26 @@ class Transformer:
         log.info('loading dict from ' + str(self.dictFilePath) + ' with ' + str(len(dict)) + ' entries')
 
         # look up result from dict
-        result = ""
-        for inSignal in inputSignals:
-            result += self.helper.getChar(inSignal, dict)
-            log.info('result: [%s]' % result)
-        return result
+        resultModifiedHammingtonDistance = ""
+        resultNumberOfPeaks = ""
+        resultLowestOfPeaks = ""
+        resultHighestfPeaks = ""
+        for charAsFloatArray in soundAsCharArrays:
+            resultModifiedHammingtonDistance += textifier.getCharBasedOnModifiedHammingtonDistance(charAsFloatArray)
+            resultNumberOfPeaks += textifier.getCharBasedOnNumberOfPeaks(charAsFloatArray)
+            resultLowestOfPeaks += textifier.getCharBasedOnLowestPeak(charAsFloatArray)
+            resultHighestfPeaks += textifier.getCharBasedOnHighestPeak(charAsFloatArray)
+            log.info('result modified hammington distance:  [%s]' % resultModifiedHammingtonDistance)
+            log.info('result #peaks:                        [%s]' % resultNumberOfPeaks)
+            log.info('result lowest peak:                   [%s]' % resultLowestOfPeaks)
+            log.info('result highest peak:                  [%s]' % resultHighestfPeaks)
+        return resultModifiedHammingtonDistance
 
     def soundify(self, inputString, soundFilePath):
         # start the recording thread
         relayBoard = RelayBoard(self.config)
         relayBoard.init()
+        time.sleep(0.5)
 
         threadConfig = {'exitFlag': False}
         soundRecorder = SoundRecorder(soundFilePath, threadConfig, self.config)
@@ -64,3 +77,28 @@ class Transformer:
         # stop the recording thread
         threadConfig['exitFlag'] = True
         soundRecorder.join(10)
+
+    def soundToFloatArray(self, soundFilePath):
+        wavFile = wave.open(soundFilePath)
+        astr = wavFile.readframes(wavFile.getnframes())
+        # convert binary chunks to short
+        a = struct.unpack("%ih" % (wavFile.getnframes() * wavFile.getnchannels()), astr)
+        a = [float(fabs(val)) / pow(2, 15) for val in a]
+        return a
+
+    def getCharsAsFloatArrays(self, inputSoundAsFloatArray):
+        reversedSignal = inputSoundAsFloatArray[::-1]
+        peakIndices = self.helper.getPeakIndicesForCharacterDetection(reversedSignal)
+        shift = self.helper.calculateLengthOfOneBeat() / 2
+        charArraysWithClearingSound = []
+        for peakIndex in peakIndices:
+            startIndex = int(peakIndex - shift)
+            endIndex = int(peakIndex + shift)
+            reversedCharVector = reversedSignal[startIndex:endIndex]
+            log.debug('vector [' + str(startIndex) + ', ' + str(endIndex) + ']')
+            charArraysWithClearingSound.append(reversedCharVector[::-1])
+        charArrays = charArraysWithClearingSound[::2][::-1]
+        if len(charArraysWithClearingSound) % 2:
+            return charArrays[1:]
+        else:
+            return charArrays

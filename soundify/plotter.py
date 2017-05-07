@@ -1,13 +1,11 @@
 import matplotlib.pyplot as plt
-import numpy as np
-import wave
-from soundify.helper import Helper
+from soundify.transformer import Transformer
 
 
 class Plotter():
     def __init__(self, config):
         self.config = config
-        self.helper = Helper(self.config)
+        self.transformer = Transformer(self.config)
 
     def plotSoundVector(self, soundVector):
         plt.figure(1)
@@ -16,11 +14,11 @@ class Plotter():
         plt.show()
 
     def plotSound(self, soundFilePath):
-        signal = self.helper.wavToFloatArray(soundFilePath)
+        signal = self.transformer.soundToFloatArray(soundFilePath)
         self.plotSoundVector(signal)
 
     def plotCharsInSoundFile(self, soundFilePath):
-        dictArray = self.helper.wavToFloatArray(soundFilePath)
-        charArrays = self.helper.getCharArrays(dictArray)
+        dictArray = self.transformer.soundToFloatArray(soundFilePath)
+        charArrays = self.transformer.getCharsAsFloatArrays(dictArray)
         for charArry in charArrays:
             self.plotSoundVector(charArry)
