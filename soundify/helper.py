@@ -30,3 +30,6 @@ class Helper:
 
     def calculateLengthOfOneBeat(self):
         return self.config.getint('Sound', 'RATE') * self.config.getfloat('Relay', 'BEAT')
+
+    def transposeLists(self, listOfLists):
+        return map(list, zip(*listOfLists))

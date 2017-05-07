@@ -46,20 +46,22 @@ class Transformer:
         log.info('loading dict from ' + str(self.dictFilePath) + ' with ' + str(len(dict)) + ' entries')
 
         # look up result from dict
-        resultModifiedHammingtonDistance = ""
-        resultNumberOfPeaks = ""
-        resultLowestOfPeaks = ""
-        resultHighestfPeaks = ""
+        resultModifiedHammingtonDistance = []
+        resultNumberOfPeaks = []
+        resultLowestOfPeaks = []
+        resultHighestfPeaks = []
         for charAsFloatArray in soundAsCharArrays:
-            resultModifiedHammingtonDistance += textifier.getCharBasedOnModifiedHammingtonDistance(charAsFloatArray)
-            resultNumberOfPeaks += textifier.getCharBasedOnNumberOfPeaks(charAsFloatArray)
-            resultLowestOfPeaks += textifier.getCharBasedOnLowestPeak(charAsFloatArray)
-            resultHighestfPeaks += textifier.getCharBasedOnHighestPeak(charAsFloatArray)
-            log.info('result modified hammington distance:  [%s]' % resultModifiedHammingtonDistance)
-            log.info('result #peaks:                        [%s]' % resultNumberOfPeaks)
-            log.info('result lowest peak:                   [%s]' % resultLowestOfPeaks)
-            log.info('result highest peak:                  [%s]' % resultHighestfPeaks)
-        return resultModifiedHammingtonDistance
+            resultModifiedHammingtonDistance.append(textifier.getCharBasedOnModifiedHammingtonDistance(charAsFloatArray))
+            resultNumberOfPeaks.append(textifier.getCharBasedOnNumberOfPeaks(charAsFloatArray))
+            resultLowestOfPeaks.append(textifier.getCharBasedOnLowestPeak(charAsFloatArray))
+            resultHighestfPeaks.append(textifier.getCharBasedOnHighestPeak(charAsFloatArray))
+            resultOverAll = textifier.getBestFitOverall([resultModifiedHammingtonDistance, resultNumberOfPeaks, resultLowestOfPeaks, resultHighestfPeaks])
+            log.info('result modified hammington distance:  %s' % resultModifiedHammingtonDistance)
+            log.info('result #peaks:                        %s' % resultNumberOfPeaks)
+            log.info('result lowest peak:                   %s' % resultLowestOfPeaks)
+            log.info('result highest peak:                  %s' % resultHighestfPeaks)
+            log.info('result overall:                       %s' % resultOverAll)
+        return ''.join(resultOverAll)
 
     def soundify(self, inputString, soundFilePath):
         # start the recording thread

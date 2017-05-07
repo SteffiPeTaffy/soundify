@@ -74,3 +74,10 @@ class Textifier():
         bestFit = self.getBestFit(maxPeak, maxPeaksFromDict)
         log.info('best match based on highest peak: ' + str(bestFit[0]) + ' = ' + str(bestFit[1]))
         return bestFit[0]
+
+    def mostCommon(self, list):
+        return max(set(list), key=list.count)
+
+    def getBestFitOverall(self, bestMatches):
+        transposedList = self.helper.transposeLists(bestMatches)
+        return map(self.mostCommon, transposedList)
