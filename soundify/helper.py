@@ -7,14 +7,18 @@ import peakutils
 class Helper:
     def __init__(self, config):
         self.config = config
+        self.peak_threshold_char_detection = self.config.getfloat('Textify', 'PEAK_THRESHOLD_CHAR_DETECTION')
+        self.peak_distance_char_detection = self.config.getint('Textify', 'PEAK_DISTANCE_CHAR_DETECTION')
+        self.peak_threshold_char_translation = self.config.getfloat('Textify', 'PEAK_THRESHOLD_CHAR_TRANSLATION')
+        self.peak_distance_char_translation = self.config.getint('Textify', 'PEAK_DISTANCE_CHAR_TRANSLATION')
 
     def getPeakIndices(self, floatArray):
         cb = np.array(floatArray)
-        return peakutils.indexes(cb, thres=0.1 / max(cb), min_dist=1)
+        return peakutils.indexes(cb, thres=self.peak_threshold_char_translation / max(cb), min_dist=self.peak_distance_char_translation)
 
     def getPeakIndicesForCharacterDetection(self, floatArray):
         cb = np.array(floatArray)
-        indexes = peakutils.indexes(cb, thres=0.3 / max(cb), min_dist=4000)
+        indexes = peakutils.indexes(cb, thres=self.peak_threshold_char_detection / max(cb), min_dist=self.peak_distance_char_detection)
         log.debug('Detected ' + str(len(indexes)) + ' peaks for character detection')
         return indexes
 

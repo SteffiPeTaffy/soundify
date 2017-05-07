@@ -46,6 +46,5 @@ def main():
         plotter.plotSound(soundFilePath)
         plotter.plotCharsInSoundFile(soundFilePath)
 
-
 if __name__ == "__main__":
     main()

@@ -34,7 +34,6 @@ class Transformer:
     def textify(self, soundFilePath):
         textifier = Textifier(self.config)
 
-
         # sound to float array
         soundAsFloatArray = self.soundToFloatArray(soundFilePath)
         soundAsCharArrays = self.getCharsAsFloatArrays(soundAsFloatArray)
