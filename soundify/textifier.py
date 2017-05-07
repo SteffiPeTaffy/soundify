@@ -1,5 +1,8 @@
 import logging as log
 from math import fabs
+
+import sys
+
 from soundify.helper import Helper
 from soundify.dictonary import Dictonary
 
@@ -22,7 +25,7 @@ class Textifier():
         return sum(result)
 
     def getBestFit(self, a, list):
-        minDistance = 999999999999999
+        minDistance = sys.maxsize
         bestFitChar = ''
         for index, value in enumerate(list):
             char = self.dictonary.getCharAt(index, self.dict)
@@ -36,7 +39,7 @@ class Textifier():
         return [bestFitChar, minDistance]
 
     def getCharBasedOnModifiedHammingtonDistance(self, inputVector):
-        minDist = 999999999999999
+        minDist = sys.maxsize
         bestFitChar = ''
         for dictEntry in self.dict:
             char = dictEntry[0]
