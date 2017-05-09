@@ -3,6 +3,7 @@ import string
 import struct
 import time
 import logging as log
+import uuid
 import wave
 from math import fabs
 from soundify.helper import Helper
@@ -27,7 +28,7 @@ class Transformer:
         soundAsFloatArray = self.soundToFloatArray(self.dictSoundFilePath)
         soundAsCharArrays = self.getCharsAsFloatArrays(soundAsFloatArray)
 
-        dictonary = Dictonary(self.config)
+        dictonary = Dictonary(self.config, self.dictFilePath)
         dictonary.writeDict(soundAsCharArrays, allAsciiChars)
 
 
@@ -49,6 +50,7 @@ class Transformer:
         resultNumberOfPeaks = []
         resultLowestOfPeaks = []
         resultHighestfPeaks = []
+        resultOverAll = []
         for charAsFloatArray in soundAsCharArrays:
             resultModifiedHammingtonDistance.append(textifier.getCharBasedOnModifiedHammingtonDistance(charAsFloatArray))
             resultNumberOfPeaks.append(textifier.getCharBasedOnNumberOfPeaks(charAsFloatArray))
@@ -79,6 +81,21 @@ class Transformer:
         threadConfig['exitFlag'] = True
         soundRecorder.join(10)
 
+    def generateTestData(self, count):
+        for _ in range(count):
+            randomInput = self.helper.getRandomInputString()
+            filePath = 'testdata/input-' + str(uuid.uuid4())
+
+            soundFilePath = filePath + '.wav'
+            self.soundify(randomInput, soundFilePath)
+
+            soundAsFloatArray = self.soundToFloatArray(soundFilePath)
+            soundAsCharArrays = self.getCharsAsFloatArrays(soundAsFloatArray)
+
+            dictFilePath = filePath + '.csv'
+            dictonary = Dictonary(self.config, dictFilePath)
+            dictonary.writeDict(soundAsCharArrays, randomInput)
+
     def soundToFloatArray(self, soundFilePath):
         wavFile = wave.open(soundFilePath)
         astr = wavFile.readframes(wavFile.getnframes())
@@ -88,14 +105,15 @@ class Transformer:
         return a
 
     def getCharsAsFloatArrays(self, inputSoundAsFloatArray):
-        reversedSignal = inputSoundAsFloatArray[::-1]
-        peakIndices = self.helper.getPeakIndicesForCharacterDetection(reversedSignal)
+        reversedInputSoundAsFloatArray = inputSoundAsFloatArray[::-1]
+        peakIndices = self.helper.getPeakIndicesForCharacterDetection(reversedInputSoundAsFloatArray)
         shift = self.helper.calculateLengthOfOneBeat() / 2
+
         charArraysWithClearingSound = []
         for peakIndex in peakIndices:
             startIndex = int(peakIndex - shift)
             endIndex = int(peakIndex + shift)
-            reversedCharVector = reversedSignal[startIndex:endIndex]
+            reversedCharVector = self.getCharArrayWithHighestPeakCentered(peakIndex, reversedInputSoundAsFloatArray)
             log.debug('vector [' + str(startIndex) + ', ' + str(endIndex) + ']')
             charArraysWithClearingSound.append(reversedCharVector[::-1])
         charArrays = charArraysWithClearingSound[::2][::-1]
@@ -103,3 +121,21 @@ class Transformer:
             return charArrays[1:]
         else:
             return charArrays
+
+    def getCharArrayWithHighestPeakCentered(self, charPeak, soundAsFloatArray):
+        shift = self.helper.calculateLengthOfOneBeat() / 2
+        candidate = soundAsFloatArray[charPeak - shift:charPeak + shift]
+        peakIndices = self.helper.getPeakIndices(candidate)
+        highestPeakValue = 0
+        highestPeakIndex = -1
+        for index in peakIndices:
+            currentPeak = candidate[index]
+            if currentPeak > highestPeakValue:
+                highestPeakValue = currentPeak
+                highestPeakIndex = index
+
+        offset = highestPeakIndex - int(len(candidate)/2)
+        highestPeakIndexForSoundAsFloatArray = charPeak - offset
+        return soundAsFloatArray[highestPeakIndexForSoundAsFloatArray-(shift+1500):highestPeakIndexForSoundAsFloatArray+(shift-1500)]
+
+

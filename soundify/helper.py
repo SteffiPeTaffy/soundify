@@ -1,3 +1,5 @@
+import random
+import string
 from math import fabs
 import logging as log
 import numpy as np
@@ -33,7 +35,11 @@ class Helper:
         return fabs(a-b)
 
     def calculateLengthOfOneBeat(self):
-        return self.config.getint('Sound', 'RATE') * self.config.getfloat('Relay', 'BEAT')
+        return int(self.config.getint('Sound', 'RATE') * self.config.getfloat('Relay', 'BEAT'))
 
     def transposeLists(self, listOfLists):
         return map(list, zip(*listOfLists))
+
+    def getRandomInputString(self):
+        allAsciiChars = string.printable
+        return ''.join(random.sample(allAsciiChars,len(allAsciiChars)))

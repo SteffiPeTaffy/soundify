@@ -13,7 +13,7 @@ class Textifier():
         self.helper = Helper(self.config)
         self.rate = config.getint('Sound', 'RATE')
         self.beat = config.getfloat('Relay', 'BEAT')
-        self.dictonary = Dictonary(self.config)
+        self.dictonary = Dictonary(self.config, self.config.get('Dictonary', 'DICT_FILE_NAME'))
         self.dict = self.dictonary.loadDict()
 
     def getModifiedHammingtonDistance(self, inputAsFloatArray, charAsFloatArray):

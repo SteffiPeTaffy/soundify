@@ -1,15 +1,17 @@
 import argparse
 import ConfigParser
 import logging as log
-from soundify.helper import Helper
-from soundify.transformer import Transformer
 from soundify.plotter import Plotter
+from soundify.textifier import Textifier
+from soundify.transformer import Transformer
+from soundify.predictifier import Predictifier
 
 parser = argparse.ArgumentParser(description='Soundify')
-parser.add_argument('command', metavar='Command', type=str, help='[init|soundify|textify]')
+parser.add_argument('command', metavar='Command', type=str, help='[init|soundify|textify|textifyML|testdata]')
 parser.add_argument('--verbose', '-v', action='count', help='Increase output verbosity',  default=0)
 parser.add_argument('--dst', metavar='OutputFile', type=str, help='File to store the result of the command')
 parser.add_argument('--src', metavar='InputFile', type=str, help='Source file to execute the command')
+parser.add_argument('--rep', metavar='Repetitions', type=int, help='Number of repetitions',  default=1)
 
 def main():
     # config for opening serial connection
@@ -45,6 +47,23 @@ def main():
         plotter = Plotter(config)
         plotter.plotSound(soundFilePath)
         plotter.plotCharsInSoundFile(soundFilePath)
+
+    if(inputArgs.command == 'testdata'):
+        count = int(inputArgs.rep)
+        transformer.generateTestData(count)
+
+    if(inputArgs.command == 'textifyML'):
+        soundFilePath = inputArgs.src
+
+        # sound to float array
+        soundAsFloatArray = transformer.soundToFloatArray(soundFilePath)
+        soundAsCharArrays = transformer.getCharsAsFloatArrays(soundAsFloatArray)
+
+        predictifier = Predictifier(config).predict(soundAsCharArrays)
+        predictifier.predict(soundAsCharArrays)
+
+
+
 
 if __name__ == "__main__":
     main()

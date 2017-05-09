@@ -1,14 +1,17 @@
 import csv
 
 import logging as log
+
+import sys
+
 from soundify.helper import Helper
 
 
 class Dictonary():
-    def __init__(self, config):
+    def __init__(self, config, dictFilePath):
         self.config = config
         self.helper = Helper(self.config)
-        self.dictFilePath = self.config.get('Dictonary', 'DICT_FILE_NAME')
+        self.dictFilePath = dictFilePath
 
     def loadDict(self):
         log.info('reading dict from csv ' + str(self.dictFilePath))
@@ -20,6 +23,7 @@ class Dictonary():
     def writeDict(self, inputSoundAsCharArrays, inputString):
         if len(inputSoundAsCharArrays) != len(inputString):
             log.error('number of detected chars need to be equal to number of input strings [' + str(len(inputSoundAsCharArrays)) + ', ' + str(len(inputString)) + ']')
+            sys.exit()
 
         inputStringAsArray = list(inputString)
         with open(self.dictFilePath, 'wb') as f:
