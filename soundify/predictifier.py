@@ -66,7 +66,7 @@ def tryIt():
     y = labelencoder_y.fit_transform(y)
 
     # feature extraction
-    pca = PCA(n_components=10)
+    pca = PCA(n_components=1)
     skb = SelectKBest(score_func=chi2, k=1)
     featureUnion = FeatureUnion([('pca', pca), ('skb', skb)])
     fit = featureUnion.fit(X, y)
@@ -87,7 +87,7 @@ def tryIt():
     regressor.fit(X_train, y_train)
 
     y_pred = regressor.predict(X_test)
-    print y_pred
+    print map(int, y_pred[0])
 
     # Compare with the builtin predict
     print(regressor.predict(X))
