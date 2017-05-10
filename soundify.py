@@ -59,8 +59,8 @@ def main():
         soundAsFloatArray = transformer.soundToFloatArray(soundFilePath)
         soundAsCharArrays = transformer.getCharsAsFloatArrays(soundAsFloatArray)
 
-        predictifier = Predictifier(config).predict(soundAsCharArrays)
-        predictifier.predict(soundAsCharArrays)
+        predictifier = Predictifier(config)
+        predictifier.nastyPredict(soundAsCharArrays)
 
 
 

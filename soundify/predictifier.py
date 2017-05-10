@@ -9,6 +9,8 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 from sklearn.feature_selection import SelectKBest
+from sklearn.svm import SVC
+
 
 class Predictifier():
     def __init__(self, config):
@@ -26,8 +28,8 @@ class Predictifier():
         y = labelencoder_y.fit_transform(y)
 
         # feature extraction
-        pca = PCA(n_components=10)
-        skb = SelectKBest(score_func=chi2, k=4)
+        pca = PCA(n_components=1)
+        skb = SelectKBest(score_func=chi2, k=1)
         featureUnion = FeatureUnion([('pca', pca), ('skb', skb)])
         fit = featureUnion.fit(X, y)
 
@@ -54,6 +56,21 @@ class Predictifier():
         print(mean_squared_error(y_test, y_pred))
         print(r2_score(y_test, y_pred))
 
+    def nastyPredict(self, soundAsCharArrays):
+        dataset = pd.read_csv('testdata/data.csv')
+        X = dataset.iloc[:, 5:].values
+        y = dataset.iloc[:, 0].values
+
+        # Encoding categorical data
+        # Encoding the Dependent Variable
+        labelencoder_y = LabelEncoder()
+        y = labelencoder_y.fit_transform(y)
+
+        clf = SVC()
+        clf.fit(X, y)
+
+        yhat = clf.predict(soundAsCharArrays)
+        print map(lambda x : labelencoder_y.inverse_transform(int(x)), yhat)
 
 def tryIt():
     dataset = pd.read_csv('testdata/data.csv')
